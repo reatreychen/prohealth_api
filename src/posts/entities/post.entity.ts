@@ -1,5 +1,11 @@
-import { Category } from "../../categories/entities/category.entity";
-import { Column, PrimaryGeneratedColumn, CreateDateColumn, Entity, ManyToOne } from "typeorm";
+import { Category } from '../../categories/entities/category.entity';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('posts')
 export class Post {

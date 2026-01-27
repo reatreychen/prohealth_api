@@ -17,7 +17,7 @@ export class CreateUserDto {
   @IsNumber()
   mobile: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   status: string;
 
@@ -29,7 +29,7 @@ export class CreateUserDto {
   @IsString()
   shopping_cart?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   role: string;
 }

@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRepository } from './user.repository';
 import * as bcrypt from 'bcrypt';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -40,8 +40,12 @@ export class UsersService {
     return await this.userRepository.find();
   }
 
+  async findById(id: string) {
+    return await this.userRepository.findOne({ where: { id } });
+  }
+
   async findOne(id: string) {
-    return this.userRepository.findOne({ where: { id } });
+    return await this.userRepository.findOne({ where: { id } });
   }
 
   async findByEmail(email: string) {
@@ -85,5 +89,11 @@ export class UsersService {
     } catch (error) {
       throw new BadRequestException(error);
     }
+  }
+
+  async updateRefreshToken(userId: string, refreshToken: string) {
+    return this.userRepository.update(userId, {
+      refreshToken,
+    });
   }
 }

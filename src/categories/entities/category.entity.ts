@@ -1,10 +1,5 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Product } from '../../product/entities/product.entity';
 
 @Entity('categories')
 export class Category {
@@ -14,9 +9,7 @@ export class Category {
   @Column({ unique: true })
   name: string;
 
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
+  @ManyToMany(() => Product, (product) => product.categories)
+  products: Product[];
 }
+

@@ -12,8 +12,8 @@ export class AbstractRepository<T extends ObjectLiteral> {
     return this.repository.save(entity);
   }
 
-  async find(): Promise<T[]> {
-    return this.repository.find();
+  async find(options?: any): Promise<T[]> {
+    return this.repository.find(options);
   }
 
   create(entityLike?: DeepPartial<T>): T {

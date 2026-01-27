@@ -1,6 +1,13 @@
-import { User } from "src/users/entities/user.entity";
-import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { OrderItem } from "./orderItem.entity";
+import { User } from 'src/users/entities/user.entity';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { OrderItem } from './orderItem.entity';
 
 @Entity('orders')
 export class Order {
@@ -13,7 +20,7 @@ export class Order {
   @ManyToOne(() => User)
   user: User;
 
-  @OneToMany(() => OrderItem, item => item.order, { cascade: true })
+  @OneToMany(() => OrderItem, (item) => item.order, { cascade: true })
   products: OrderItem[];
 
   @Column({ nullable: true })
@@ -28,9 +35,6 @@ export class Order {
 
   @Column({ type: 'decimal', default: 0 })
   subTotalAmount: number;
-
-  @Column({ nullable: true })
-  invoiceReceipt: string;
 
   @CreateDateColumn()
   createdAt: Date;

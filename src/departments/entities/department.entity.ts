@@ -11,9 +11,6 @@ export class Department {
   @Column({ default: '' })
   description: string;
 
-  @Column('text', { array: true, default: [] })
-  image: string[];
-
   @CreateDateColumn()
   createdAt: Date;
 

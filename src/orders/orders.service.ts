@@ -1,26 +1,100 @@
-import { Injectable } from '@nestjs/common';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
+import {HttpException, Injectable} from '@nestjs/common';
+import {CreateOrderDto} from './dto/create-order.dto';
+import {UpdateOrderDto} from './dto/update-order.dto';
+import {UserRepository} from "../users/user.repository";
+import {OrderRepository} from "./order.repository";
+import {ProductRepository} from "../product/product.repository";
+import {OrderItem} from "./entities/orderItem.entity";
+import {Order} from "./entities/order.entity";
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class OrdersService {
-  create(createOrderDto: CreateOrderDto) {
-    return 'This action adds a new order';
-  }
+    // inject repositories for User, Product, and Order here
+    constructor(private readonly orderRepository: OrderRepository,
+                private readonly userRepository: UserRepository,
+                private readonly productRepository: ProductRepository,) {
+    }
 
-  findAll() {
-    return `This action returns all orders`;
-  }
+    async create(createOrderDto: CreateOrderDto) {
+        // verify user exists
+        const user = await this.userRepository.findOne({where: {id: createOrderDto.userId}})
 
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
-  }
+        if (!user) {
+            throw  new HttpException("User not found", 404);
+        }
 
-  update(id: number, updateOrderDto: UpdateOrderDto) {
-    return `This action updates a #${id} order`;
-  }
+        // validate product and calculate total price
+        let subTotal = 0;
+        const orderItems:OrderItem[] = [];
+        for (const item of createOrderDto.items) {
+            const product = await this.productRepository.findOne(
+                {where: {id: item.productId}}
+            )
+            if(!product){
+                throw new HttpException(`Product with id ${item.productId} not found`, 404);
+            }
 
-  remove(id: number) {
-    return `This action removes a #${id} order`;
-  }
+            const orderItem = new OrderItem();
+            orderItem.product = product;
+            orderItem.quantity = item.quantity;
+            orderItem.price = product.price;
+            orderItems.push(orderItem);
+
+            subTotal += Number(product.price) * item.quantity;
+        }
+
+        // create order
+        const order = new Order();
+        order.orderId = `ORD-${Date.now()}-${uuidv4().slice(0, 8)}`;
+        order.user = user;
+        order.products = orderItems;
+        order.subTotalAmount = subTotal;
+        order.paymentStatus = "PENDING";
+        const saveOrder = await this.orderRepository.save(order);
+        return {
+            message: "Order created successfully",
+            data : saveOrder,
+            success: true,
+            error: false
+
+        }
+
+    }
+
+    async findAll(): Promise<Order[]> {
+        return await this.orderRepository.find({
+            relations: ['user', 'products', 'products.product'],
+            order: { createdAt: 'DESC' },
+        });
+    }
+
+    async findOne(id: string): Promise<Order> {
+        const order = await this.orderRepository.findOne({
+            where: { id },
+            relations: ['user', 'products', 'products.product'],
+        });
+
+        if(!order) {
+            throw new HttpException("User not found", 404);
+        }
+
+        return  order;
+      }
+
+    async findByUserId(userId: string): Promise<Order[]> {
+        return await this.orderRepository.find({
+            where: { user: { id: userId } },
+            relations: ['products', 'products.product'],
+            order: { createdAt: 'DESC' },
+        });
+    }
+
+    async update(id: string, updateOrderDto: UpdateOrderDto) {
+
+    }
+
+    remove(id: number) {
+        return `This action removes a #${id} order`;
+    }
 }

@@ -32,21 +32,21 @@ export class CategoriesController {
   @Get(':id')
   @UseGuards(AcessJwtGuard)
   findOne(@Param('id') id: string) {
-    return this.categoriesService.findOne(+id);
+    return this.categoriesService.findOne(id);
   }
 
   @Patch(':id')
   @UseGuards(AcessJwtGuard)
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
   ) {
-    return this.categoriesService.update(+id, updateCategoryDto);
+    return await this.categoriesService.update(id, updateCategoryDto);
   }
 
   @Delete(':id')
   @UseGuards(AcessJwtGuard)
   remove(@Param('id') id: string) {
-    return this.categoriesService.remove(+id);
+    return this.categoriesService.remove(id);
   }
 }

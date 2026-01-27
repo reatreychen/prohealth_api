@@ -8,14 +8,17 @@ import { APP_GUARD } from '@nestjs/core';
 import { AcessJwtGuard } from './auth/guards/access-jwt.guard';
 import { CategoriesModule } from './categories/categories.module';
 import { Category } from './categories/entities/category.entity';
+import { ProductModule } from './product/product.module';
+import { Product } from './product/entities/product.entity';
 // import { CartsModule } from './carts/carts.module';
 // import { OrdersModule } from './orders/orders.module';
-// import { DepartmentsModule } from './departments/departments.module';
 // import { DoctorsModule } from './doctors/doctors.module';
 // import { PostsModule } from './posts/posts.module';
 // import { PricingPlansModule } from './pricing-plans/pricing-plans.module';
 import { UploadService } from './upload/upload.service';
 import { UploadModule } from './upload/upload.module';
+import {DepartmentsModule} from "./departments/departments.module";
+import {Department} from "./departments/entities/department.entity";
 
 @Module({
   imports: [
@@ -31,7 +34,7 @@ import { UploadModule } from './upload/upload.module';
         username: configService.get('DB_USER', 'postgres'),
         password: configService.get('DB_PASS', 'root'),
         database: configService.get('DB_NAME', 'typeorm'),
-        entities: [User, Category],
+        entities: [User, Category, Product, Department],
         synchronize: true,
         logging: true,
       }),
@@ -40,10 +43,11 @@ import { UploadModule } from './upload/upload.module';
     UsersModule,
     AuthModule,
     CategoriesModule,
+    ProductModule,
     UploadModule,
     // CartsModule,
     // OrdersModule,
-    // DepartmentsModule,
+    DepartmentsModule,
     // DoctorsModule,
     // PostsModule,
     // PricingPlansModule,
@@ -57,4 +61,4 @@ import { UploadModule } from './upload/upload.module';
     UploadService,
   ],
 })
-export class AppModule {}
+export class AppModule { }

@@ -3,26 +3,25 @@ import {
   Post,
   UploadedFile,
   UseInterceptors,
+  Inject,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadService } from './upload.service';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { UPLOAD_FOLDER_TOKEN, createUploadStorage } from './upload.config';
 
 @Controller('upload')
 export class UploadController {
-  constructor(private readonly uploadService: UploadService) {}
+  constructor(
+    private readonly uploadService: UploadService,
+    @Inject(UPLOAD_FOLDER_TOKEN) private readonly uploadFolder: string,
+  ) {}
 
   @Post('image')
   @UseInterceptors(
     FileInterceptor('image', {
-      storage: diskStorage({
-        destination: './uploads',
-        filename: (req, file, cb) => {
-          const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          cb(null, uniqueName + extname(file.originalname));
-        },
-      }),
+      storage: createUploadStorage(
+        process.env.UPLOAD_FOLDER || './uploads',
+      ),
     }),
   )
   uploadImage(@UploadedFile() file: Express.Multer.File) {

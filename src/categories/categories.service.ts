@@ -31,31 +31,59 @@ export class CategoriesService {
     return await this.categoriesRepository.find();
   }
 
-  async findOne(id: number) {
-    return await this.categoriesRepository.findOne({ where: { id } });
-  }
-
-  async update(id: number, updateCategoryDto: UpdateCategoryDto) {
+  async findOne(id: string) {
     try {
       const category = await this.categoriesRepository.findOne({
         where: { id },
       });
+      // validation
       if (!category) {
         throw new HttpException(`Category with id ${id} not found`, 400);
       }
 
-      const updatedCategory = Object.assign(category, updateCategoryDto);
-      return await this.categoriesRepository.save(updatedCategory);
+      return {
+        message: 'Category found successfully',
+        category,
+        success: true,
+        error: false,
+      };
     } catch (error) {
       throw new HttpException(error, 400);
     }
   }
 
-  async remove(id: number) {
+  async update(id: string, updateCategoryDto: UpdateCategoryDto) {
+    try {
+      const category = await this.categoriesRepository.findOne({
+        where: { id },
+      });
+
+      // validation
+      if (!category) {
+        throw new HttpException(`Category with id ${id} not found`, 400);
+      }
+
+      const updatedCategory = Object.assign(category, updateCategoryDto);
+      await this.categoriesRepository.save(updatedCategory);
+
+      return {
+        message: 'Category updated successfully',
+        category: updatedCategory,
+        success: true,
+        error: false,
+      };
+    } catch (error) {
+      throw new HttpException(error, 400);
+    }
+  }
+
+  async remove(id: string) {
     try {
       await this.categoriesRepository.delete(id);
       return {
         message: 'Category deleted successfully',
+        success: true,
+        error: false,
       };
     } catch (error) {
       throw new HttpException(error, 400);

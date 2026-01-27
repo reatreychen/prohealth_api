@@ -1,76 +1,96 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
-import { JwtService } from '@nestjs/jwt';
 import { RegisterDto } from './dto/register.dto';
+import { JwtUtil } from './Util/jwt.util';
+import * as bcrypt from 'bcrypt';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class AuthService {
   // inject user service
   constructor(
     private readonly userService: UsersService,
-    private readonly jwtService: JwtService,
+    private readonly jwtUtil: JwtUtil,
   ) {}
 
-  async login(loginDto: LoginDto) {
+  async register(dto: RegisterDto) {
     try {
-      const userExists = await this.userService.findByEmail(loginDto.email);
-      if (!userExists) {
-        throw new HttpException('Invalid credentials', 401);
+      const userExists = await this.userService.findByEmail(dto.email);
+      if (userExists) {
+        throw new HttpException('User already exists', 400);
       }
-
-      const passwordMatches = await this.userService.compareHash(
-        loginDto.password,
-        userExists.password, // hash from database
-      );
-
-      if (!passwordMatches) {
-        throw new HttpException('Invalid credentials', 401);
-      }
-
-      // generate JWT token
-      const token = await this.jwtService.signAsync({
-        userId: userExists.id,
+      const hash = await bcrypt.hash(dto.password, 10);
+      const user = await this.userService.create({
+        ...dto,
+        password: hash,
       });
 
-      if (!token) {
-        throw new HttpException('Invalid credentials', 401);
+      if (!user) {
+        throw new HttpException('User not created', 400);
       }
 
       return {
-        data: userExists,
-        access_token: token,
-        token_type: 'bearer',
+        message: 'User registered successfully',
+        data: user,
+        success: true,
+        error: false,
       };
     } catch (error) {
-      throw new HttpException(error.message, error.status);
+      throw new HttpException(error.message, 400);
     }
   }
 
-  async register(dto: RegisterDto) {
-    const userExists = await this.userService.findByEmail(dto.email);
-    if (userExists) {
-      throw new HttpException('User already exists', 400);
-    }
-    const user = await this.userService.create(dto);
+  async login(loginDto: LoginDto) {
+    const user = await this.userService.findByEmail(loginDto.email);
 
     if (!user) {
-      throw new HttpException('User not created', 400);
-    }
-
-    // generate JWT token
-    const token = await this.jwtService.signAsync({
-      userId: user.id,
-    });
-
-    if (!token) {
       throw new HttpException('Invalid credentials', 401);
     }
 
+    const valid = await bcrypt.compare(loginDto.password, user.password);
+    if (!valid) {
+      throw new HttpException('Invalid credentials', 401);
+    }
+
+    const accessToken = this.jwtUtil.generateAccessToken(user.id);
+    const refreshToken = this.jwtUtil.generateRefreshToken(user.id);
+
+    await this.userService.updateRefreshToken(user.id, refreshToken);
+
+    // Exclude password and refreshToken from user data
+    const { password, refreshToken: _, ...userData } = user;
+
     return {
-      user,
-      access_token: token,
-      token_type: 'bearer',
+      data: user,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
     };
+  }
+
+  async refreshToken(refreshToken: string) {
+    let payload: any;
+
+    try {
+      payload = jwt.verify(refreshToken, process.env.SECRET_KEY_REFRESH_TOKEN!);
+    } catch {
+      throw new HttpException('Invalid refresh token', 401);
+    }
+
+    const user = await this.userService.findById(payload.id);
+
+    if (!user || user.refreshToken !== refreshToken) {
+      throw new HttpException('Refresh token not valid', 401);
+    }
+
+    const newAccessToken = this.jwtUtil.generateAccessToken(user.id);
+
+    return {
+      accessToken: newAccessToken,
+    };
+  }
+
+  async logout(userId: string) {
+    await this.userService.updateRefreshToken(userId, '');
   }
 }

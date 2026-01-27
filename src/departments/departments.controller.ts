@@ -7,28 +7,28 @@ import { UpdateDepartmentDto } from './dto/update-department.dto';
 export class DepartmentsController {
   constructor(private readonly departmentsService: DepartmentsService) {}
 
-  @Post()
-  create(@Body() createDepartmentDto: CreateDepartmentDto) {
-    return this.departmentsService.create(createDepartmentDto);
+  @Post('create')
+  async create(@Body() dto: CreateDepartmentDto) {
+    return await this.departmentsService.create(dto);
   }
 
-  @Get()
-  findAll() {
-    return this.departmentsService.findAll();
+  @Get('get-all')
+  async findAll() {
+    return await this.departmentsService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.departmentsService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    return await this.departmentsService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDepartmentDto: UpdateDepartmentDto) {
-    return this.departmentsService.update(+id, updateDepartmentDto);
+  async update(@Param('id') id: string, @Body() updateDepartmentDto: UpdateDepartmentDto) {
+    return await this.departmentsService.update(id, updateDepartmentDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.departmentsService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return await this.departmentsService.remove(id);
   }
 }

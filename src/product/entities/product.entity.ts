@@ -1,5 +1,13 @@
-import { Category } from "../../categories/entities/category.entity";
-import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Category } from '../../categories/entities/category.entity';
 
 @Entity('products')
 export class Product {
@@ -40,11 +48,3 @@ export class Product {
   @UpdateDateColumn()
   updatedAt: Date;
 }
-function CreateDateColumn(): (target: Product, propertyKey: "createdAt") => void {
-    throw new Error("Function not implemented.");
-}
-
-function UpdateDateColumn(): (target: Product, propertyKey: "updatedAt") => void {
-    throw new Error("Function not implemented.");
-}
-
