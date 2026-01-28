@@ -1,5 +1,13 @@
 import { Department } from "../../departments/entities/department.entity";
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+  JoinColumn,
+} from "typeorm";
 
 @Entity('doctors')
 export class Doctor {
@@ -9,11 +17,12 @@ export class Doctor {
   @Column()
   name: string;
 
-  @ManyToOne(() => Department)
+  @ManyToOne(() => Department, { eager: true })
+  @JoinColumn({ name: 'department_id' })
   department: Department;
 
-  @Column({ nullable: true })
-  image: string;    
+  @Column('text', { array: true, default: [] })
+  image: string[];
 
   @Column({ default: '' })
   description: string;

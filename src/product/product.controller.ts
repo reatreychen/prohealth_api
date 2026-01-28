@@ -33,15 +33,10 @@ export class ProductController {
     @UploadedFiles() files: Express.Multer.File[],
   ) {
     try {
-      console.log('Files received:', files?.length || 0);
-      
       // Upload images to Cloudinary
       let imageUrls: string[] = [];
-      if (files && files.length > 0) {
-        console.log('Attempting to upload', files.length, 'image(s)...');
         try {
           imageUrls = await this.uploadService.uploadMultipleImages(files);
-          console.log('Images uploaded successfully:', imageUrls);
         } catch (uploadError: any) {
           console.error('Image upload error:', uploadError?.message || uploadError);
           // If Cloudinary fails, use local file paths as fallback
@@ -53,27 +48,13 @@ export class ProductController {
             console.log('Using local file paths as fallback:', imageUrls);
           }
         }
-      } else {
-        console.log('No files received');
-      }
-
       // Add image URLs to the DTO - ensure it's always an array
       const productData = {
         ...createProductDto,
         image: imageUrls.length > 0 ? imageUrls : (createProductDto.image || []),
       };
 
-      console.log('Product data with images:', {
-        name: productData.name,
-        imageCount: productData.image?.length || 0,
-        images: productData.image,
-      });
-
-      const result = await this.productService.create(productData);
-      
-      console.log('Product created with images:', result.data?.image);
-      
-      return result;
+       return await this.productService.create(productData);
     } catch (error) {
       console.error('Product creation error:', error);
       throw error;

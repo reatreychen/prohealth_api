@@ -12,13 +12,14 @@ import { ProductModule } from './product/product.module';
 import { Product } from './product/entities/product.entity';
 // import { CartsModule } from './carts/carts.module';
 // import { OrdersModule } from './orders/orders.module';
-// import { DoctorsModule } from './doctors/doctors.module';
+import { DoctorsModule } from './doctors/doctors.module';
 // import { PostsModule } from './posts/posts.module';
 // import { PricingPlansModule } from './pricing-plans/pricing-plans.module';
 import { UploadService } from './upload/upload.service';
 import { UploadModule } from './upload/upload.module';
 import {DepartmentsModule} from "./departments/departments.module";
 import {Department} from "./departments/entities/department.entity";
+import {Doctor} from "./doctors/entities/doctor.entity";
 
 @Module({
   imports: [
@@ -34,7 +35,7 @@ import {Department} from "./departments/entities/department.entity";
         username: configService.get('DB_USER', 'postgres'),
         password: configService.get('DB_PASS', 'root'),
         database: configService.get('DB_NAME', 'typeorm'),
-        entities: [User, Category, Product, Department],
+        entities: [User, Category, Product, Department, Doctor],
         synchronize: true,
         logging: true,
       }),
@@ -48,7 +49,7 @@ import {Department} from "./departments/entities/department.entity";
     // CartsModule,
     // OrdersModule,
     DepartmentsModule,
-    // DoctorsModule,
+    DoctorsModule,
     // PostsModule,
     // PricingPlansModule,
   ],
