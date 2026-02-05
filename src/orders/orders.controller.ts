@@ -12,37 +12,34 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { OrderRepository } from './order.repository';
 import { UserRepository } from '../users/user.repository';
 import { ProductRepository } from '../product/product.repository';
+import { OrdersService } from './orders.service';
 
 @Controller('orders')
 export class OrdersController {
-  constructor(
-    private readonly orderRepository: OrderRepository,
-    private readonly userRepository: UserRepository,
-    private readonly productRepository: ProductRepository,
-  ) {}
+  constructor(private readonly ordersService: OrdersService) { }
 
-  @Post()
-  create(@Body() createOrderDto: CreateOrderDto) {
-
+  @Post('create')
+  async create(@Body() createOrderDto: CreateOrderDto) {
+    return await this.ordersService.create(createOrderDto);
   }
 
-  @Get()
-  findAll() {
-
+  @Get('get-all')
+  async findAll() {
+    return await this.ordersService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-
+  async findOne(@Param('id') id: string) {
+    return await this.ordersService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-
+  async update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
+    return await this.ordersService.update(id, updateOrderDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-
+  async remove(@Param('id') id: string) {
+    return await this.ordersService.remove(id);
   }
 }

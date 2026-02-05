@@ -12,7 +12,7 @@ export class AuthService {
   constructor(
     private readonly userService: UsersService,
     private readonly jwtUtil: JwtUtil,
-  ) {}
+  ) { }
 
   async register(dto: RegisterDto) {
     try {
@@ -20,15 +20,10 @@ export class AuthService {
       if (userExists) {
         throw new HttpException('User already exists', 400);
       }
-      const hash = await bcrypt.hash(dto.password, 10);
+
       const user = await this.userService.create({
         ...dto,
-        password: hash,
       });
-
-      if (!user) {
-        throw new HttpException('User not created', 400);
-      }
 
       return {
         message: 'User registered successfully',
@@ -53,7 +48,7 @@ export class AuthService {
       throw new HttpException('Invalid credentials', 401);
     }
 
-    const accessToken = this.jwtUtil.generateAccessToken(user.id);
+    const accessToken = this.jwtUtil.generateAccessToken(user.id, user.role);
     const refreshToken = this.jwtUtil.generateRefreshToken(user.id);
 
     await this.userService.updateRefreshToken(user.id, refreshToken);
@@ -77,13 +72,13 @@ export class AuthService {
       throw new HttpException('Invalid refresh token', 401);
     }
 
-    const user = await this.userService.findById(payload.id);
+    const { data: user } = await this.userService.findById(payload.id);
 
     if (!user || user.refreshToken !== refreshToken) {
       throw new HttpException('Refresh token not valid', 401);
     }
 
-    const newAccessToken = this.jwtUtil.generateAccessToken(user.id);
+    const newAccessToken = this.jwtUtil.generateAccessToken(user.id, user.role);
 
     return {
       accessToken: newAccessToken,

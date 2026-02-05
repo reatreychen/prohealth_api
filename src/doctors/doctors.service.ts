@@ -10,7 +10,7 @@ export class DoctorsService {
   constructor(
     private readonly doctorRepository: DoctorRepository,
     protected readonly departmentRepository: DepartmentRepository,
-  ) {}
+  ) { }
 
   async create(dto: CreateDoctorDto) {
     const department = await this.departmentRepository.findOne({
@@ -39,25 +39,24 @@ export class DoctorsService {
       throw new HttpException('Failed to create doctor', 500);
     }
     return {
-        success: true,
-        message: 'Doctor created successfully',
-        data: saved,
+      success: true,
+      message: 'Doctor created successfully',
+      data: saved,
     }
   }
 
   async findAll() {
     try {
-      const doctors = await this.doctorRepository.find();
-      if (!doctors) {
-        throw new HttpException('No doctors found', 404);
-      }
+      const doctors = await this.doctorRepository.find({
+        relations: ['department'],
+      });
       return {
         success: true,
         message: 'Doctors retrieved successfully',
         data: doctors,
-      }
-    }catch (e) {
-      throw new HttpException('Failed to find doctor', 500);
+      };
+    } catch (error) {
+      throw new HttpException('Failed to find doctors', 500);
     }
   }
 
@@ -73,7 +72,7 @@ export class DoctorsService {
         data: doctor,
       };
     } catch (error) {
-        throw new HttpException(error.message, 500);
+      throw new HttpException(error.message, 500);
     }
   }
 
@@ -81,44 +80,44 @@ export class DoctorsService {
     try {
       const doctor = await this.findOne(id);
 
-       if(dto.departmentId) {
-         const department = await this.departmentRepository.findOne({
-           where: { id: dto.departmentId },
-         });
-         if (!department) {
-           throw new HttpException('Department not found', 404);
-         }
-         doctor.data.department = department;
-       }
-
-
-        const updatedDoctor = await this.doctorRepository.save({
-            ...doctor.data,
-            ...dto,
+      if (dto.departmentId) {
+        const department = await this.departmentRepository.findOne({
+          where: { id: dto.departmentId },
         });
+        if (!department) {
+          throw new HttpException('Department not found', 404);
+        }
+        doctor.data.department = department;
+      }
 
-       return {
+
+      const updatedDoctor = await this.doctorRepository.save({
+        ...doctor.data,
+        ...dto,
+      });
+
+      return {
         success: true,
         message: 'Doctor updated successfully',
         data: updatedDoctor,
-       }
+      }
 
-    }catch (e) {
-        throw new HttpException('Failed to update doctor', 500);
+    } catch (e) {
+      throw new HttpException('Failed to update doctor', 500);
     }
   }
 
   async remove(id: string) {
     try {
-        const doctor = await this.findOne(id);
-        const removed = await this.doctorRepository.remove(doctor.data);
-        return {
-            success: true,
-            message: 'Doctor removed successfully',
-            data: removed,
-        };
-    }catch (e) {
-        throw new HttpException('Failed to remove doctor', 500);
+      const doctor = await this.findOne(id);
+      const removed = await this.doctorRepository.remove(doctor.data);
+      return {
+        success: true,
+        message: 'Doctor removed successfully',
+        data: removed,
+      };
+    } catch (e) {
+      throw new HttpException('Failed to remove doctor', 500);
     }
   }
 }

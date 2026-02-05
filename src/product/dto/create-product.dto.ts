@@ -52,4 +52,12 @@ export class CreateProductDto {
   @IsOptional()
   @Transform(({ value }) => (value === '' ? undefined : Number(value)))
   discount?: number;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true' || value === true) return true;
+    if (value === 'false' || value === false) return false;
+    return undefined;
+  })
+  public?: boolean;
 }

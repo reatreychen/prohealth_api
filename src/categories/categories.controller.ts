@@ -8,6 +8,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { Public } from '../shared/decorators/public.decorator';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -15,7 +16,7 @@ import { AcessJwtGuard } from '../auth/guards/access-jwt.guard';
 
 @Controller('categories')
 export class CategoriesController {
-  constructor(private readonly categoriesService: CategoriesService) {}
+  constructor(private readonly categoriesService: CategoriesService) { }
 
   @Post('create')
   @UseGuards(AcessJwtGuard)
@@ -24,8 +25,8 @@ export class CategoriesController {
   }
 
   @Get('get-categories')
-  @UseGuards(AcessJwtGuard)
-  findAll() {
+  @Public()
+  async findAll() {
     return this.categoriesService.findAll();
   }
 

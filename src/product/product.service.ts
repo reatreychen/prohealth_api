@@ -1,68 +1,39 @@
-import {HttpException, Injectable, NotFoundException} from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import {CategoryRepository} from "../categories/category.repository";
-import {In} from "typeorm";
-import {ProductRepository} from "./product.repository";
+import { CategoryRepository } from "../categories/category.repository";
+import { In } from "typeorm";
+import { ProductRepository } from "./product.repository";
 import { Category } from '../categories/entities/category.entity';
 
 @Injectable()
 export class ProductService {
   constructor(
-      private readonly productRepository: ProductRepository,
-      private readonly categoryRepository: CategoryRepository,
-  ) {}
+    private readonly productRepository: ProductRepository,
+    private readonly categoryRepository: CategoryRepository,
+  ) { }
 
-  async create(dto: CreateProductDto) {
+  async create(createProductDto: CreateProductDto) {
     try {
-      let categories: Category[] = [];
+      const { categoryIds, ...productData } = createProductDto;
+      const product = this.productRepository.create(productData);
 
-      if (dto.categoryIds && Array.isArray(dto.categoryIds) && dto.categoryIds.length > 0) {
-        categories = await this.categoryRepository.find({
-          where: { id: In(dto.categoryIds) },
+      if (categoryIds && Array.isArray(categoryIds) && categoryIds.length > 0) {
+        const categories = await this.categoryRepository.find({
+          where: { id: In(categoryIds) },
         });
+        if (categories.length !== categoryIds.length) {
+          throw new NotFoundException('One or more categories not found');
+        }
+        product.categories = categories;
       }
-      
-      // Remove categoryIds from dto before creating product
-      const { categoryIds, ...productData } = dto;
-      
-      console.log('Creating product with data:', {
-        name: productData.name,
-        image: productData.image,
-        imageType: typeof productData.image,
-        imageIsArray: Array.isArray(productData.image),
-      });
-      
-      // Ensure image is always an array
-      const imageArray = Array.isArray(productData.image) 
-        ? productData.image 
-        : (productData.image ? [productData.image] : []);
-      
-      const product = this.productRepository.create({
-        ...productData,
-        image: imageArray,
-        categories,
-      });
-      
-      console.log('Product entity before save:', {
-        name: product.name,
-        image: product.image,
-        imageLength: product.image?.length,
-      });
-      
+
       const savedProduct = await this.productRepository.save(product);
-      
-      console.log('Product saved with images:', {
-        id: savedProduct.id,
-        image: savedProduct.image,
-        imageLength: savedProduct.image?.length,
-      });
-      
+
       return {
+        success: true,
         message: 'Product created successfully',
         data: savedProduct,
-        success: true,
-        error: false,
       };
     } catch (error) {
       throw new HttpException(error.message, 500);
@@ -70,9 +41,13 @@ export class ProductService {
   }
 
   async findAll() {
-    return await this.productRepository.find({
+    const products = await this.productRepository.find({
       relations: ['categories'],
     });
+    return {
+      success: true,
+      data: products
+    };
   }
 
   async findOne(id: string) {
@@ -85,11 +60,16 @@ export class ProductService {
       throw new NotFoundException('Product not found');
     }
 
-    return product;
+    return {
+      success: true,
+      message: 'Product retrieved successfully',
+      data: product
+    };
   }
 
   async update(id: string, dto: UpdateProductDto) {
-    const product = await this.findOne(id);
+    const res = await this.findOne(id);
+    const product = res.data;
 
     if (dto.categoryIds && Array.isArray(dto.categoryIds)) {
       product.categories = await this.categoryRepository.find({
@@ -99,25 +79,29 @@ export class ProductService {
 
     if (dto.image !== undefined) {
       product.image = Array.isArray(dto.image)
-          ? dto.image
-          : [dto.image];
+        ? dto.image
+        : [dto.image];
     }
 
     const { categoryIds, ...productData } = dto;
     Object.assign(product, productData);
 
-    return await this.productRepository.save(product);
+    const saved = await this.productRepository.save(product);
+    return {
+      success: true,
+      message: 'Product updated successfully',
+      data: saved
+    };
   }
 
 
   async remove(id: string) {
-    const product = await this.findOne(id);
-     await this.productRepository.delete(id);
+    const res = await this.findOne(id);
+    await this.productRepository.delete(id);
     return {
-      message: 'Product deleted successfully',
-      data: product,
       success: true,
-      error: false,
+      message: 'Product deleted successfully',
+      data: res.data
     };
   }
 }

@@ -5,7 +5,7 @@ import { CategoryRepository } from './category.repository';
 
 @Injectable()
 export class CategoriesService {
-  constructor(private readonly categoriesRepository: CategoryRepository) {}
+  constructor(private readonly categoriesRepository: CategoryRepository) { }
 
   async create(createCategoryDto: CreateCategoryDto) {
     try {
@@ -28,7 +28,13 @@ export class CategoriesService {
   }
 
   async findAll() {
-    return await this.categoriesRepository.find();
+    const categories = await this.categoriesRepository.find({
+      relations: ['products'],
+    });
+    return {
+      success: true,
+      data: categories
+    };
   }
 
   async findOne(id: string) {
@@ -79,14 +85,21 @@ export class CategoriesService {
 
   async remove(id: string) {
     try {
+      const category = await this.categoriesRepository.findOne({ where: { id } });
+      if (!category) {
+        throw new HttpException(`Category with id ${id} not found`, 404);
+      }
+
       await this.categoriesRepository.delete(id);
+
       return {
         message: 'Category deleted successfully',
         success: true,
         error: false,
       };
     } catch (error) {
-      throw new HttpException(error, 400);
+      const message = error.message || 'Failed to delete category. It might be linked to products.';
+      throw new HttpException(message, 400);
     }
   }
 }

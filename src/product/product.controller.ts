@@ -4,6 +4,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { UploadService } from '../upload/upload.service';
+import { Public } from '../shared/decorators/public.decorator';
 import { UPLOAD_FOLDER_TOKEN, createUploadStorage } from '../upload/upload.config';
 
 @Controller('product')
@@ -12,9 +13,9 @@ export class ProductController {
     private readonly productService: ProductService,
     private readonly uploadService: UploadService,
     @Inject(UPLOAD_FOLDER_TOKEN) private readonly uploadFolder: string,
-  ) {}
+  ) { }
 
-  @Post('create') 
+  @Post('create')
   @UseInterceptors(
     FilesInterceptor('images', 10, {
       storage: createUploadStorage(
@@ -35,26 +36,26 @@ export class ProductController {
     try {
       // Upload images to Cloudinary
       let imageUrls: string[] = [];
-        try {
-          imageUrls = await this.uploadService.uploadMultipleImages(files);
-        } catch (uploadError: any) {
-          console.error('Image upload error:', uploadError?.message || uploadError);
-          // If Cloudinary fails, use local file paths as fallback
-          if (files && files.length > 0) {
-            imageUrls = files.map((file) => {
-              // Return the file path or a relative URL
-              return file.path ? `/uploads/${file.filename}` : '';
-            }).filter((url) => url !== '');
-            console.log('Using local file paths as fallback:', imageUrls);
-          }
+      try {
+        imageUrls = await this.uploadService.uploadMultipleImages(files);
+      } catch (uploadError: any) {
+        console.error('Image upload error:', uploadError?.message || uploadError);
+        // If Cloudinary fails, use local file paths as fallback
+        if (files && files.length > 0) {
+          imageUrls = files.map((file) => {
+            // Return the file path or a relative URL
+            return file.path ? `/uploads/${file.filename}` : '';
+          }).filter((url) => url !== '');
+          console.log('Using local file paths as fallback:', imageUrls);
         }
+      }
       // Add image URLs to the DTO - ensure it's always an array
       const productData = {
         ...createProductDto,
         image: imageUrls.length > 0 ? imageUrls : (createProductDto.image || []),
       };
 
-       return await this.productService.create(productData);
+      return await this.productService.create(productData);
     } catch (error) {
       console.error('Product creation error:', error);
       throw error;
@@ -62,6 +63,7 @@ export class ProductController {
   }
 
   @Get('get-all')
+  @Public()
   async findAll() {
     return await this.productService.findAll();
   }

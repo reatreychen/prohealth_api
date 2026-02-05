@@ -1,4 +1,4 @@
-import { User } from 'src/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -32,6 +32,13 @@ export class Order {
     default: 'PENDING',
   })
   paymentStatus: string;
+
+  @Column({
+    type: 'enum',
+    enum: ['PENDING', 'COMPLETED', 'CANCELLED'],
+    default: 'PENDING',
+  })
+  orderStatus: string;
 
   @Column({ type: 'decimal', default: 0 })
   subTotalAmount: number;

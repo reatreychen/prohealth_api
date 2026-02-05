@@ -4,12 +4,12 @@ import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class JwtUtil {
-  constructor(private jwtService: JwtService) {}
+  constructor(private jwtService: JwtService) { }
 
-  generateAccessToken(userId: string) {
+  generateAccessToken(userId: string, role: string) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     return this.jwtService.sign(
-      { id: userId },
+      { id: userId, role },
       {
         secret: process.env.SECRET_KEY_ACCESS_TOKEN,
         expiresIn: '5h',

@@ -8,4 +8,7 @@ export class CreateDepartmentDto {
     @IsString()
     @IsOptional()
     description?: string;
+
+    @IsOptional()
+    image?: string[];
 }

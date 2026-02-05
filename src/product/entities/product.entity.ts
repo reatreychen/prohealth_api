@@ -20,7 +20,7 @@ export class Product {
   @Column('text', { array: true, default: [] })
   image: string[];
 
-  @ManyToMany(() => Category)
+  @ManyToMany(() => Category, (category) => category.products)
   @JoinTable()
   categories: Category[];
 

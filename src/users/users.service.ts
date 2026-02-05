@@ -6,7 +6,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(private readonly userRepository: UserRepository) { }
 
   async create(createUserDto: CreateUserDto) {
     try {
@@ -30,18 +30,30 @@ export class UsersService {
       if (!user) {
         throw new BadRequestException('user not created');
       }
-      return user;
+      return {
+        success: true,
+        message: 'User created successfully',
+        data: user
+      };
     } catch (error) {
       throw new BadRequestException(error);
     }
   }
 
   async findAll() {
-    return await this.userRepository.find();
+    const users = await this.userRepository.find();
+    return {
+      success: true,
+      data: users
+    };
   }
 
   async findById(id: string) {
-    return await this.userRepository.findOne({ where: { id } });
+    const user = await this.userRepository.findOne({ where: { id } });
+    return {
+      success: true,
+      data: user
+    };
   }
 
   async findOne(id: string) {
@@ -60,8 +72,15 @@ export class UsersService {
         throw new BadRequestException(`User with id ${id} not found`);
       }
 
-      const updatedUser = await this.userRepository.save(user);
-      return updatedUser;
+      const updatedUser = await this.userRepository.save({
+        ...user,
+        ...updateUserDto
+      });
+      return {
+        success: true,
+        message: 'User updated successfully',
+        data: updatedUser
+      };
     } catch (error) {
       throw new BadRequestException(error);
     }
@@ -76,7 +95,10 @@ export class UsersService {
       }
 
       await this.userRepository.remove(user);
-      return { message: `User with id ${id} has been deleted` };
+      return {
+        success: true,
+        message: `User with id ${id} has been deleted`
+      };
     } catch (error) {
       throw new BadRequestException(error);
     }

@@ -1,4 +1,3 @@
-import { Category } from '../../categories/entities/category.entity';
 import {
   Column,
   CreateDateColumn,
@@ -18,11 +17,8 @@ export class Post {
   @Column({ default: '' })
   content: string;
 
-  @Column({ nullable: true })
-  image: string;
-
-  @ManyToOne(() => Category)
-  category: Category;
+  @Column('text', { array: true, default: [] })
+  image: string[];
 
   @CreateDateColumn()
   createdAt: Date;

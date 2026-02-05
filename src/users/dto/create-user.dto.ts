@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateUserDto {
   @IsNotEmpty()
@@ -14,6 +15,7 @@ export class CreateUserDto {
   password: string;
 
   @IsNotEmpty()
+  @Transform(({ value }) => (typeof value === 'string' ? Number(value) : value))
   @IsNumber()
   mobile: number;
 
